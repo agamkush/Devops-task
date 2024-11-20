@@ -3,15 +3,16 @@ name: Build Run and Deploy
 env: 
   AZURE_CONTAINER_REGISTRY: devops12
 
-on:
-  issues:
-    types:
-      - labeled
-      - unlabeled
+on: 
+  workflow_dispatch:
+  # issues:
+  #   types:
+  #     - labeled
+  #     - unlabeled
 
 jobs:
-  run-on-label:
-    if: contains('bug', github.event.label.name) 
+  deploy:
+    # if: contains('bug', github.event.label.name) 
     runs-on: ubuntu-latest
 
 
