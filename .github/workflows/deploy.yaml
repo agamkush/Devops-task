@@ -38,8 +38,8 @@ jobs:
           docker push ${{env.AZURE_CONTAINER_REGISTRY}}.azurecr.io/${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0
 
       # Step 5: Run the Docker container
-      - name: Run the Docker container
-        run: |
-          docker stop testing-container || true
-          docker rm testing-container || true
-          docker run -d --name testing-container ${{env.AZURE_CONTAINER_REGISTRY}}.azurecr.io/${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0
+      # - name: Run the Docker container
+      #   run: |
+      #     docker stop testing-container || true
+      #     docker rm testing-container || true
+      #     docker run -d --name testing-container ${{env.AZURE_CONTAINER_REGISTRY}}.azurecr.io/${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0
