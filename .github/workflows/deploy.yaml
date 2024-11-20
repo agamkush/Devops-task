@@ -1,0 +1,46 @@
+name: Build Run and Deploy
+
+env: 
+  AZURE_CONTAINER_REGISTRY: devops12
+
+on:
+  label:
+    types:
+      - created
+      - edited
+
+jobs:
+  build-and-deploy:
+    if: contains('bugs', github.event.label.name) # Replace 'trigger-label' with your specific label
+    runs-on: ubuntu-latest
+
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      # Step 2: Login to Azure Container Registry
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      # Step 3: Build the Docker image
+      - name: Build the Docker image
+        run: |
+          docker build -t ${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0 .
+
+      # Step 4: Push the Docker image to the registry
+      - name: Push the Docker image
+        run: |
+          docker push ${{env.AZURE_CONTAINER_REGISTRY}}.azurecr.io/${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0
+
+      # Step 5: Run the Docker container
+      - name: Run the Docker container
+        run: |
+          docker stop testing-container || true
+          docker rm testing-container || true
+          docker run -d --name testing-container ${{env.AZURE_CONTAINER_REGISTRY}}.azurecr.io/${{env.AZURE_CONTAINER_REGISTRY}}/nodejs-app:1.0
