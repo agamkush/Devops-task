@@ -10,7 +10,7 @@ on:
 
 jobs:
   run-on-label:
-    if: contains('triger-label', github.event.label.name) # Replace 'trigger-label' with your specific label
+    if: contains('bug', github.event.label.name) # Replace 'trigger-label' with your specific label
     runs-on: ubuntu-latest
 
 
