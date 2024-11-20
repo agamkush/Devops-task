@@ -4,14 +4,13 @@ env:
   AZURE_CONTAINER_REGISTRY: devops12
 
 on:
-  label:
+  issues:
     types:
-      - created
-      - edited
+      - labeled
 
 jobs:
-  build-and-deploy:
-    if: contains('bugs', github.event.label.name) # Replace 'trigger-label' with your specific label
+  run-on-label:
+    if: contains('triger-label', github.event.label.name) # Replace 'trigger-label' with your specific label
     runs-on: ubuntu-latest
 
 
