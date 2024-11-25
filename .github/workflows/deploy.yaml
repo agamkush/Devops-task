@@ -22,10 +22,11 @@ jobs:
           registry: ${{ env.AZURE_CONTAINER_REGISTRY }}
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
+          
       - name: "Set IMAGE_VERSION"
-        id: set_image_version
         run: |
-          echo "$IMAGE_VERSION=${{ github.sha::0:7 }}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+
 
       # Step 4: Build the Docker image with version tagging
       - name: "Build the Docker Image"
