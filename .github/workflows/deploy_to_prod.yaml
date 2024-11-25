@@ -28,6 +28,11 @@ jobs:
         run: |
           echo "IMAGE_VERSION=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
+      - name: "Copy GITHUB_ENV content to a new file"
+        run: |
+          cp $GITHUB_ENV ./github-env-content.txt
+          cat ./github-env-content.txt
+
 
       # Step 4: Build the Docker image with version tagging
       - name: "Build the Docker Image"
