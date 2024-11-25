@@ -30,10 +30,11 @@ jobs:
 
       - name: "Copy GITHUB_ENV content to a new file"
         run: |
-          cp $GITHUB_ENV ./github-env-content.txt
-          cat ./github-env-content.txt
-
-
+            mkdir -p image_version
+            TARGET_FILE = image_version/version.txt
+            $GITHUB_ENV >> $TARGET_FILE
+            cat $TARGET_FILE
+            
       # Step 4: Build the Docker image with version tagging
       - name: "Build the Docker Image"
         run: |
