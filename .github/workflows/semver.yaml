@@ -41,11 +41,9 @@ jobs:
             MAJOR=$((MAJOR + 1))
                 MINOR=0
                 PATCH=0
-                ;
           elif git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]" ; then
             MINOR=$((MINOR + 1))
                 PATCH=0
-                ;
           else
             PATCH=$((PATCH + 1))
           fi
