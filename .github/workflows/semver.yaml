@@ -30,9 +30,46 @@ jobs:
           git fetch --tags
           LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v.0.0.0")
           echo "LATEST_TAG=${LATEST_TAG}" >> GITHUB_ENV
-          echo "${GITHUB_ENV}"
 
-    #  - name: "Determine the Increment type"
+      - name: Determine increment type
+        id: version_type
+        run: |
+          # Look for commit messages with [MAJOR], [MINOR], or [PATCH]
+          if git log -1 --pretty=%B | grep -q "\[MAJOR\]"; then
+            echo "INCREMENT=major" >> $GITHUB_ENV
+          elif git log -1 --pretty=%B | grep -q "\[MINOR\]"; then
+            echo "INCREMENT=minor" >> $GITHUB_ENV
+          else
+            echo "INCREMENT=patch" >> $GITHUB_ENV
+          fi
+          
+      - name: Increment version
+        id: new_version
+        run: |
+            CURRENT_VERSION=${LATEST_TAG#v}
+            MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+            MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+            PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+  
+            case "${INCREMENT}" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+  
+            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+            echo "New version: $NEW_VERSION"
+        
         
         
             
