@@ -85,15 +85,23 @@ jobs:
             #  echo "New version: $NEW_VERSION"
             
       # Step 4: Build the Docker image with version tagging
-      - name: "Build the Docker Image"
-        run: |
-          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} .
-          docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
+    #   - name: "Build the Docker Image"
+    #     run: |
+    #       docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} .
+    #       docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
 
-      # Step 5: Push the Docker image to Azure Container Registry
-      - name: "Push the Docker Image"
-        run: |
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}}
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
+    #   # Step 5: Push the Docker image to Azure Container Registry
+    #   - name: "Push the Docker Image"
+    #     run: |
+    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}}
+    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+         push: true
+         tags: |
+            ${{ env.AZURE_CONTAINER_REGISTRY }}/g1-sso-service:${{ env.NEW_VERSION }}
+            ${{ env.AZURE_CONTAINER_REGISTRY }}/g1-sso-service:latest
 
                
