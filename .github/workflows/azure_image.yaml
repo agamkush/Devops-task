@@ -80,7 +80,7 @@ jobs:
             type=raw,value=${{ steps.versioning.outputs.major_version }}
             type=raw,value=${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
             type=raw,value=latest
-            
+
     # Step 5: Build and Push Docker Image
       - name: Build and push Docker image
         id: build-and-push
@@ -90,23 +90,23 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-    #       cache-from: type=gha
-    #       cache-to: type=gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    #   - name: Create Release
-    #     uses: actions/create-release@v1
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #     with:
-    #       tag_name: ${{ steps.versioning.outputs.full_version }}
-    #       release_name: Release ${{ steps.versioning.outputs.full_version }}
-    #       body: |
-    #         ## Changes
-    #         - Automated release based on semantic versioning
-    #         - Docker image tags generated:
-    #           * ${{ steps.versioning.outputs.new_version }}
-    #           * ${{ steps.versioning.outputs.major_version }}
-    #           * ${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
-    #           * latest
-    #       draft: false
-    #       prerelease: false
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.versioning.outputs.full_version }}
+          release_name: Release ${{ steps.versioning.outputs.full_version }}
+          body: |
+            ## Changes
+            - Automated release based on semantic versioning
+            - Docker image tags generated:
+              * ${{ steps.versioning.outputs.new_version }}
+              * ${{ steps.versioning.outputs.major_version }}
+              * ${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
+              * latest
+          draft: false
+          prerelease: false
