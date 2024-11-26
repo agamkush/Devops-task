@@ -1,0 +1,108 @@
+name: Docker Image CI with Semantic Versioning
+
+on:
+  push:
+    branches:
+        feature/g1-sso-service
+
+env:
+  # Docker image details
+  REGISTRY: devops12.azurecr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full git history for versioning
+
+      - name: Determine Version
+        id: versioning
+        run: |
+          # Get the latest tag or start from 0.0.0
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          
+          # Extract current version numbers
+          MAJOR=$(echo "$LATEST_TAG" | cut -d'v' -f2 | cut -d'.' -f1)
+          MINOR=$(echo "$LATEST_TAG" | cut -d'.' -f2)
+          PATCH=$(echo "$LATEST_TAG" | cut -d'.' -f3)
+
+          # Get the commit message
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+
+          # Increment version based on commit message
+          if [[ "$COMMIT_MESSAGE" =~ \[MAJOR\] ]]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+          elif [[ "$COMMIT_MESSAGE" =~ \[MINOR\] ]]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+          else
+              PATCH=$((PATCH + 1))
+          fi
+
+          # Create version strings
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          
+          # Output versions for use in subsequent steps
+          echo "major_version=${MAJOR}" >> $GITHUB_OUTPUT
+          echo "minor_version=${MINOR}" >> $GITHUB_OUTPUT
+          echo "patch_version=${PATCH}" >> $GITHUB_OUTPUT
+          echo "full_version=v${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.versioning.outputs.new_version }}
+            type=raw,value=${{ steps.versioning.outputs.major_version }}
+            type=raw,value=${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+    #       cache-from: type=gha
+    #       cache-to: type=gha,mode=max
+
+    #   - name: Create Release
+    #     uses: actions/create-release@v1
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #     with:
+    #       tag_name: ${{ steps.versioning.outputs.full_version }}
+    #       release_name: Release ${{ steps.versioning.outputs.full_version }}
+    #       body: |
+    #         ## Changes
+    #         - Automated release based on semantic versioning
+    #         - Docker image tags generated:
+    #           * ${{ steps.versioning.outputs.new_version }}
+    #           * ${{ steps.versioning.outputs.major_version }}
+    #           * ${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
+    #           * latest
+    #       draft: false
+    #       prerelease: false
