@@ -35,14 +35,14 @@ jobs:
         id: version_type
         run: |
           # Look for commit messages with [MAJOR], [MINOR], or [PATCH]
-          if git log -1 --pretty=%B | grep -q "\[MAJOR\]"; then
+          if git log -1 --pretty=%B | grep -iq "\[major\]"; then
             echo "INCREMENT=major" >> $GITHUB_ENV
-          elif git log -1 --pretty=%B | grep -q "\[MINOR\]"; then
+          elif git log -1 --pretty=%B | grep -iq "\[minor\]"; then
             echo "INCREMENT=minor" >> $GITHUB_ENV
           else
             echo "INCREMENT=patch" >> $GITHUB_ENV
           fi
-          
+
       - name: Increment version
         id: new_version
         run: |
