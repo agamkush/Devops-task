@@ -1,7 +1,7 @@
 name: Docker Versioning and Deployment
 
 env: 
-  AZURE_CONTAINER_REGISTRY: devops12.azurecr.io
+  AZURE_CONTAINER_REGISTRY: devops12
 on:
   push:
     branches:
