@@ -1,112 +1,72 @@
-name: Docker Image CI with Semantic Versioning
+name: Docker Versioning and Deployment
 
+env: 
+  AZURE_CONTAINER_REGISTRY: devops12.azurecr.io
 on:
   push:
     branches:
-        feature/g1-sso-service
-
-env:
-  # Docker image details
-  REGISTRY: devops12.azurecr.io
-  IMAGE_NAME: ${{ github.repository }}
+       feature/g1-sso-service
 
 jobs:
-  build-and-push:
+  build-and-version:
     runs-on: ubuntu-latest
 
-    # Step 1: Checkout the code
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Ensures full git history for versioning
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-    # Step 2: Determining the version
-      - name: Determine Version
-        id: versioning
-        run: |
-          # Get the latest tag or start from 0.0.0
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          
-          # Extract current version numbers
-          MAJOR=$(echo "$LATEST_TAG" | cut -d'v' -f2 | cut -d'.' -f1)
-          MINOR=$(echo "$LATEST_TAG" | cut -d'.' -f2)
-          PATCH=$(echo "$LATEST_TAG" | cut -d'.' -f3)
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIAL }}
 
-          # Get the commit message
-          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+    - name: Log in to ACR
+      run: |
+        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
 
-          # Increment version based on commit message
-          if [[ "$COMMIT_MESSAGE" =~ \[MAJOR\] ]]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-          elif [[ "$COMMIT_MESSAGE" =~ \[MINOR\] ]]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-          else
-              PATCH=$((PATCH + 1))
-          fi
+    - name: Determine Latest Version
+      id: version
+      run: |
+        # Get the list of existing tags from ACR
+        TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository my-app --orderby time_desc --output tsv)
 
-          # Create version strings
-          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          
-          # Output versions for use in subsequent steps
-          echo "major_version=${MAJOR}" >> $GITHUB_OUTPUT
-          echo "minor_version=${MINOR}" >> $GITHUB_OUTPUT
-          echo "patch_version=${PATCH}" >> $GITHUB_OUTPUT
-          echo "full_version=v${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        # Extract the latest version number
+        LATEST_VERSION=$(echo "$TAGS" | grep '^prod-' | head -n 1 | sed 's/prod-//')
+        
+        # Increment the version (default to 0.0.1 if no previous version exists)
+        if [ -z "$LATEST_VERSION" ]; then
+          NEW_VERSION="0.0.1"
+        else
+          IFS='.' read -ra PARTS <<< "$LATEST_VERSION"
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
+        fi
+        
+        echo "NEW_VERSION=prod-${NEW_VERSION}" >> $GITHUB_ENV
 
-    # Step 3: Setup the Dokcer-buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Build Docker Image
+      run: |
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/my-app:${{ env.NEW_VERSION }} .
 
-    # Step 4: Login to Azure Registry
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.AZURE_CLIENT_ID }}
-          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+    - name: Push Docker Image to ACR
+      run: |
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/my-app:${{ env.NEW_VERSION }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{ steps.versioning.outputs.new_version }}
-            type=raw,value=${{ steps.versioning.outputs.major_version }}
-            type=raw,value=${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
-            type=raw,value=latest
+    - name: Get Image Digest from ACR
+      id: digest
+      run: |
+        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository my-app --query "[?tags[?contains(@, '${{ env.NEW_VERSION }}')]].digest" -o tsv)
+        echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
 
-    # Step 5: Build and Push Docker Image
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    - name: Log Version and Digest
+      run: |
+        echo "Version: ${{ env.NEW_VERSION }}"
+        echo "Digest: ${{ env.DIGEST }}"
+        
+        # (Optional) Write to a file for tracking
+        echo "${{ env.NEW_VERSION }} ${{ env.DIGEST }}" >> version-log.txt
 
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.versioning.outputs.full_version }}
-          release_name: Release ${{ steps.versioning.outputs.full_version }}
-          body: |
-            ## Changes
-            - Automated release based on semantic versioning
-            - Docker image tags generated:
-              * ${{ steps.versioning.outputs.new_version }}
-              * ${{ steps.versioning.outputs.major_version }}
-              * ${{ steps.versioning.outputs.major_version }}.${{ steps.versioning.outputs.minor_version }}
-              * latest
-          draft: false
-          prerelease: false
+    - name: Upload Version Log (Optional)
+      uses: actions/upload-artifact@v3
+      with:
+        name: version-log
+        path: version-log.txt
