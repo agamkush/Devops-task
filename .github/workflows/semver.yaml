@@ -37,12 +37,12 @@ jobs:
       - name: Determine increment type
         id: version_type
         run: |
-          if git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]"; then
+          if git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]" ; then
             MAJOR=$((MAJOR + 1))
                 MINOR=0
                 PATCH=0
                 ;
-          elif git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]"; then
+          elif git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]" ; then
             MINOR=$((MINOR + 1))
                 PATCH=0
                 ;
