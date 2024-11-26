@@ -37,14 +37,15 @@ jobs:
       - name: Determine increment type
         id: version_type
         run: |
-          # Look for commit messages with [MAJOR], [MINOR], or [PATCH]
-          if git log -1 --pretty=%B | grep -q "\[MAJOR\]" || git log -1 --pretty=%B | grep -q "\[major\]" || git log -1 --pretty=%B | grep -q "\[Major\]"; then
+          if git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]"; then
             MAJOR=$((MAJOR + 1))
                 MINOR=0
                 PATCH=0
-          elif git log -1 --pretty=%B | grep -q "\[MAJOR\]" || git log -1 --pretty=%B | grep -q "\[major\]" || git log -1 --pretty=%B | grep -q "\[Major\]"; then
+                ;
+          elif git log -1 --pretty=%B | grep -iqE "\[MAJOR\]" || git log -1 --pretty=%B | grep -iqE "\[major\]" || git log -1 --pretty=%B | grep -iqE "\[Major\]"; then
             MINOR=$((MINOR + 1))
                 PATCH=0
+                ;
           else
             PATCH=$((PATCH + 1))
           fi
@@ -56,45 +57,6 @@ jobs:
           echo "NEW_VERSION=${NEW_VERSION} " >> $GITHUB_ENV
           echo "New version: $NEW_VERSION"
 
-    #   - name: Increment version
-    #     id: new_version
-    #     run: |
-    #         CURRENT_VERSION=${LATEST_TAG#v}
-    #         MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-    #         MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-    #         PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
-  
-    #         case "${INCREMENT}" in
-    #           major)
-    #             MAJOR=$((MAJOR + 1))
-    #             MINOR=0
-    #             PATCH=0
-    #             ;;
-    #           minor)
-    #             MINOR=$((MINOR + 1))
-    #             PATCH=0
-    #             ;;
-    #           patch)
-    #             PATCH=$((PATCH + 1))
-    #             ;;
-    #         esac
-  
-            #  NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-            #  echo "NEW_VERSION=${NEW_VERSION} " >> $GITHUB_ENV
-            #  echo "$GITHUB_ENV"
-            #  echo "New version: $NEW_VERSION"
-            
-      # Step 4: Build the Docker image with version tagging
-    #   - name: "Build the Docker Image"
-    #     run: |
-    #       docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} .
-    #       docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
-
-    #   # Step 5: Push the Docker image to Azure Container Registry
-    #   - name: "Push the Docker Image"
-    #     run: |
-    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}}
-    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
