@@ -70,20 +70,17 @@ jobs:
             echo "NEW_VERSION=${NEW_VERSION} " >> $GITHUB_ENV
             echo "$GITHUB_ENV"
             echo "New version: $NEW_VERSION"
-        
-        
-        
             
-    #   # Step 4: Build the Docker image with version tagging
-    #   - name: "Build the Docker Image"
-    #     run: |
-    #       docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${IMAGE_VERSION} .
-    #       docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${IMAGE_VERSION} ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
+      # Step 4: Build the Docker image with version tagging
+      - name: "Build the Docker Image"
+        run: |
+          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} .
+          docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}} ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
 
-    #   # Step 5: Push the Docker image to Azure Container Registry
-    #   - name: "Push the Docker Image"
-    #     run: |
-    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${IMAGE_VERSION}
-    #       docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
+      # Step 5: Push the Docker image to Azure Container Registry
+      - name: "Push the Docker Image"
+        run: |
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:${NEW_VERSION}}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-console:latest
 
                
