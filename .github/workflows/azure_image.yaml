@@ -8,7 +8,7 @@ on:
 env:
   # Docker image details
   REGISTRY: devops12.azurecr.io
-  IMAGE_NAME: g1-sso-service
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
