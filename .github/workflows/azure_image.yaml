@@ -24,7 +24,7 @@ jobs:
       run: |
         az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
 
-    - name: Determine Latest Version
+    - name: Image Versioning
       id: version
       run: |
         # Get the list of existing tags from ACR
@@ -42,6 +42,7 @@ jobs:
         fi
         
         echo "NEW_VERSION=prod-${NEW_VERSION}" >> $GITHUB_ENV
+        echo "$GITHUB_ENV"
 
     - name: Build Docker Image
       run: |
