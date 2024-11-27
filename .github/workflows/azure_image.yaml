@@ -29,7 +29,7 @@ jobs:
       run: |
         # Get the list of existing tags from ACR
         TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --orderby time_desc --output tsv)
-
+         echo "$TAGS"
         # Extract the latest version number
         LATEST_VERSION=$(echo "$TAGS" | grep '^prod-' | head -n 1 | sed 's/prod-//')
         
