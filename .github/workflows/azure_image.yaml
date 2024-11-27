@@ -66,8 +66,8 @@ jobs:
         # (Optional) Write to a file for tracking
         echo "${{ env.NEW_VERSION }} ${{ env.DIGEST }}" >> version-log.txt
 
-    # - name: Upload Version Log (Optional)
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: version-log
-    #     path: version-log.txt
+    - name: Upload Version Log (Optional)
+      uses: actions/upload-artifact@v3
+      with:
+        name: version-log
+        path: version-log.txt
