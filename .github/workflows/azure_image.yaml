@@ -57,17 +57,22 @@ jobs:
       run: |
         IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --query "[?tags[?contains(@, '${{ env.NEW_VERSION }}')]].digest" -o tsv)
         echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+        echo "$GITHUB_ENV"
 
-    - name: Log Version and Digest
-      run: |
-        echo "Version: ${{ env.NEW_VERSION }}"
-        echo "Digest: ${{ env.DIGEST }}"
+    # - name:      
+
+    # # - name: Log Version and Digest
+    # #   run: |
+    # #     echo "Version: ${{ env.NEW_VERSION }}"
+    # #     echo "Digest: ${{ env.DIGEST }}"
         
-        # (Optional) Write to a file for tracking
-        echo "${{ env.NEW_VERSION }} ${{ env.DIGEST }}" >> version-log.txt
+    # #     # (Optional) Write to a file for tracking
+    # #     echo "${{ env.NEW_VERSION }} ${{ env.DIGEST }}" >> version-log.txt
 
-    - name: Upload Version Log (Optional)
-      uses: actions/upload-artifact@v3
-      with:
-        name: version-log
-        path: ./version-log.txt
+    # # - name: Upload Version Log (Optional)
+    # #   uses: actions/upload-artifact@v3
+    # #   with:
+    # #     name: version-log
+    # #     path: ./version-log.txt
+
+    
