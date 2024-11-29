@@ -2,7 +2,7 @@ name: Docker Versioning and Deployment
 
 env: 
   AZURE_CONTAINER_REGISTRY: devops12
-  IMAGE_TAG: sso_
+  IMAGE_TAG: sso-
 on:
   push:
     branches:
