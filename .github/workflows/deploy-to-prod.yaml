@@ -2,6 +2,7 @@ name: Docker Versioning and Deployment
 
 env: 
   AZURE_CONTAINER_REGISTRY: devops12
+  IMAGE_TAG: sso_
 on:
   push:
     branches:
@@ -33,7 +34,7 @@ jobs:
                 exit 1
             fi
 
-              LATEST_VERSION=$(echo "$TAGS" | grep '^prod-' | head -n 1 | sed 's/prod-//')
+              LATEST_VERSION=$(echo "$TAGS" | grep '^${{ env.IMAGE_TAG }}' | head -n 1 | sed 's/${{ env.IMAGE_TAG }}//')
               if [ -z "$LATEST_VERSION" ]; then
                 NEW_VERSION="0.0.1"
               elif [[ "$LATEST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -44,7 +45,7 @@ jobs:
                 exit 1
               fi
 
-            echo "NEW_VERSION=prod-${NEW_VERSION}" >> $GITHUB_ENV
+            echo "NEW_VERSION=${{ env.IMAGE_TAG }}${NEW_VERSION}" >> $GITHUB_ENV
 
     - name: Build Docker Image
       run: |
