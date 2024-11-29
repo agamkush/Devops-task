@@ -29,10 +29,7 @@ jobs:
       id: version
       run: |
          TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --orderby time_desc --output tsv)
-            if [ -z "$TAGS" ]; then
-                echo "Error: No tags found or unable to fetch tags."
-                exit 1
-            fi
+            
 
               LATEST_VERSION=$(echo "$TAGS" | grep '^${{ env.IMAGE_TAG }}' | head -n 1 | sed 's/${{ env.IMAGE_TAG }}//')
               if [ -z "$LATEST_VERSION" ]; then
