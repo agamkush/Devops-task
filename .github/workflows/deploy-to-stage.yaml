@@ -1,0 +1,60 @@
+name: Docker Versioning and Deployment
+
+env: 
+  AZURE_CONTAINER_REGISTRY: devops12
+on:
+  push:
+    branches:
+      feature/g1-sso-service
+
+jobs:
+  build-and-version:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIAL }}
+
+    - name: Log in to ACR
+      run: |
+        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+
+    - name: Image Versioning
+      id: version
+      run: |
+        # Get the list of existing tags from ACR
+        TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --orderby time_desc --output tsv)
+         echo "$TAGS"
+        # Extract the latest version number
+        LATEST_VERSION=$(echo "$TAGS" | grep '^prod-' | head -n 1 | sed 's/prod-//')
+        
+        # Increment the version (default to 0.0.1 if no previous version exists)
+        if [ -z "$LATEST_VERSION" ]; then
+          NEW_VERSION="0.0.1"
+        else
+          IFS='.' read -ra PARTS <<< "$LATEST_VERSION"
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
+        fi
+        
+        echo "NEW_VERSION=prod-${NEW_VERSION}" >> $GITHUB_ENV
+        echo "$GITHUB_ENV"
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.NEW_VERSION }} .
+
+    - name: Push Docker Image to ACR
+      run: |
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.NEW_VERSION }}
+
+    - name: Get Image Digest from ACR
+      id: digest
+      run: |
+        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --query "[?tags[?contains(@, '${{ env.NEW_VERSION }}')]].digest" -o tsv)
+        echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+        echo "$GITHUB_ENV"
