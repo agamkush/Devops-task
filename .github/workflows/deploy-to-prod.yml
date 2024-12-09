@@ -2,6 +2,7 @@ name: Docker Versioning and Deployment
 
 env: 
   AZURE_CONTAINER_REGISTRY: testregistry170
+  AZURE_REPOSITARTY_NAME: g1-sso-service
 
 on:
   push:
@@ -34,7 +35,7 @@ jobs:
       id: version
       run: |
         # Get the list of existing tags from ACR
-        TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --orderby time_desc --output tsv)
+        TAGS=$(az acr repository show-tags --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository ${{env.AZURE_REPOSITARTY_NAME}} --orderby time_desc --output tsv)
         echo "$TAGS"
         # Extract the latest version number
         LATEST_VERSION=$(echo "$TAGS" | grep '^prod-' | head -n 1 | sed 's/prod-//')
@@ -56,16 +57,16 @@ jobs:
 
     - name: Build Docker Image
       run: |
-        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.IMAGE_VERSION}} .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{env.AZURE_REPOSITARTY_NAME}}:${{ env.IMAGE_VERSION}} .
 
     - name: Push Docker Image to ACR
       run: |
-        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.IMAGE_VERSION}}
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{env.AZURE_REPOSITARTY_NAME}}:${{ env.IMAGE_VERSION}}
 
     - name: Get Image Digest from ACR
       id: digest
       run: |
-        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --query "[?tags[?contains(@, '${{ env.IMAGE_VERSION }}')]].digest" -o tsv)
+        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository ${{env.AZURE_REPOSITARTY_NAME}} --query "[?tags[?contains(@, '${{ env.IMAGE_VERSION }}')]].digest" -o tsv)
         echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
         echo "$GITHUB_ENV"
     
