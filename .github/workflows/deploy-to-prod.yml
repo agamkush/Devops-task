@@ -42,17 +42,13 @@ jobs:
         
         # Increment the version (default to 0.0.1 if no previous version exists)
         if [ -z "$LATEST_VERSION" ]; then
-          IMAGE_VERSION
-          ="0.0.1"
+          IMAGE_VERSION="0.0.1"
         else
           IFS='.' read -ra PARTS <<< "$LATEST_VERSION"
-          IMAGE_VERSION
-          ="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
+          IMAGE_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
         fi
         
-        echo "IMAGE_VERSION
-        =prod-${IMAGE_VERSION
-        }" >> $GITHUB_ENV
+        echo "IMAGE_VERSION=prod-${IMAGE_VERSION}" >> $GITHUB_ENV
         echo "$GITHUB_ENV"
 
     - name: Build Docker Image
