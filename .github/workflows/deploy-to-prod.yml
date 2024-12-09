@@ -1,7 +1,7 @@
 name: Docker Versioning and Deployment
 
 env: 
-  AZURE_CONTAINER_REGISTRY: testregistry170.azurecr.io
+  AZURE_CONTAINER_REGISTRY: testregistry170
   AZURE_REPOSITARTY_NAME: zwing-service
 
 on:
