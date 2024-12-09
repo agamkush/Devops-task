@@ -1,7 +1,7 @@
 name: Docker Versioning and Deployment
 
 env: 
-  AZURE_CONTAINER_REGISTRY: devops12
+  AZURE_CONTAINER_REGISTRY: testregistry170
 
 on:
   push:
@@ -23,7 +23,8 @@ jobs:
     - name: Log in to Azure using service-principal
       uses: azure/login@v1
       with:
-        creds: ${{secrets.azure_credentials}}
+        # creds: ${{secrets.azure_credentials}} 
+        creds: ${{secrets.AZURE_CREDENTIAL}}
 
     - name: Log in to ACR
       run: |
@@ -40,26 +41,32 @@ jobs:
         
         # Increment the version (default to 0.0.1 if no previous version exists)
         if [ -z "$LATEST_VERSION" ]; then
-          NEW_VERSION="0.0.1"
+          IMAGE_VERSION
+          ="0.0.1"
         else
           IFS='.' read -ra PARTS <<< "$LATEST_VERSION"
-          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
+          IMAGE_VERSION
+          ="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
         fi
         
-        echo "NEW_VERSION=prod-${NEW_VERSION}" >> $GITHUB_ENV
+        echo "IMAGE_VERSION
+        =prod-${IMAGE_VERSION
+        }" >> $GITHUB_ENV
         echo "$GITHUB_ENV"
 
     - name: Build Docker Image
       run: |
-        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.NEW_VERSION }} .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.IMAGE_VERSION}} .
 
     - name: Push Docker Image to ACR
       run: |
-        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.NEW_VERSION }}
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/g1-sso-service:${{ env.IMAGE_VERSION}}
 
     - name: Get Image Digest from ACR
       id: digest
       run: |
-        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --query "[?tags[?contains(@, '${{ env.NEW_VERSION }}')]].digest" -o tsv)
+        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository g1-sso-service --query "[?tags[?contains(@, '${{ env.IMAGE_VERSION }}')]].digest" -o tsv)
         echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
         echo "$GITHUB_ENV"
+    
+    
