@@ -29,22 +29,23 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Set IMAGE_TAG (Optional)
-      id: set-image-tag
-      run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      # Dynamically sets IMAGE_TAG to the short Git commit SHA
+    # - name: Set IMAGE_TAG (Optional)
+    #   id: set-image-tag
+    #   run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    #   Dynamically sets IMAGE_TAG to the short Git commit SHA
       # If not needed, you can keep the default `latest` tag
 
     - name: Build, Tag, and Push Docker Image
       id: build-and-push-image
       run: |
         echo "Building and pushing image to ECR..."
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "Image URL: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
-      env:
-        ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        docker build -t ${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}} .
+        docker push ${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}}
+        #  docker tag ${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}}
+        #  docker push ${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}}
+      # echo "Image URL: ${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}}"
+        # echo "image=${{env.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}}" >> $GITHUB_OUTPUT    
+      # env:
+      #   {{env.ECR_REGISTRY}}: ${{ env.ECR_REGISTRY }}
+      #   ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+      #   IMAGE_TAG: ${{ env.IMAGE_TAG }}
