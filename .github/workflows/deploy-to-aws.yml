@@ -1,7 +1,7 @@
 name: Build test and deploy to AWS
 
 env: 
-  ECR_REGISTRY: testing-cicd-repo 
+  ECR_REGISTRY: 396913723591.dkr.ecr.ap-south-1.amazonaws.com/testing-cicd-repo
 
 on:
   push: 
