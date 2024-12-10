@@ -1,19 +1,20 @@
-name: Build test and deploy to AWS
+name: Build, Test, and Deploy to AWS
 
 env: 
-  ECR_REGISTRY: 396913723591.dkr.ecr.ap-south-1.amazonaws.com/testing-cicd-repo
+  ECR_REGISTRY: 396913723591.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: testing-cicd-repo # Define repository name
+  IMAGE_TAG: latest # You can dynamically set this in the steps if needed
 
 on:
   push: 
     branches:
-    - feature/g1-sso-service   
+      - feature/g1-sso-service   
 
 jobs:
-   deploy-to-AWS:
+  deploy-to-AWS:
     runs-on: ubuntu-latest
     
     steps:
-        
     - name: Checkout Code
       uses: actions/checkout@v4
       
@@ -28,9 +29,22 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
+    - name: Set IMAGE_TAG (Optional)
+      id: set-image-tag
+      run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      # Dynamically sets IMAGE_TAG to the short Git commit SHA
+      # If not needed, you can keep the default `latest` tag
+
+    - name: Build, Tag, and Push Docker Image
+      id: build-and-push-image
       run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
+        echo "Building and pushing image to ECR..."
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "Image URL: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
+      env:
+        ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
