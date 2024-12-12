@@ -1,0 +1,29 @@
+name: Deploy to docker
+
+on:
+  push:
+    branches:
+    - feature/g1-sso-service
+
+jobs:
+   deploy-to-docker:
+    runs-on: ubuntu-latest
+    
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Login to Docker Registry
+      uses: docker/login-action@v3
+      with: 
+        username: ${{secrets.docker_username}}
+        password: ${{secrets.docker_password}}
+
+    - name: Build and Push
+      uses: docker/build-push-action@v5
+      with: 
+        context: .
+        push: true 
+        tags: agam234332/testing-image:v1 
+      
