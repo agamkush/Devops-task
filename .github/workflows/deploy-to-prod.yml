@@ -59,11 +59,14 @@ jobs:
       run: |
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{env.AZURE_REPOSITARTY_NAME}}:${{ env.IMAGE_VERSION}}
 
-    - name: Get Image Digest from ACR
-      id: digest
-      run: |
-        IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository ${{env.AZURE_REPOSITARTY_NAME}} --query "[?tags[?contains(@, '${{ env.IMAGE_VERSION }}')]].digest" -o tsv)
-        echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
-        echo "$GITHUB_ENV"
+    # - name: Get Image Digest from ACR
+    #   id: digest
+    #   run: |
+    #     IMAGE_DIGEST=$(az acr repository show-manifests --name ${{ env.AZURE_CONTAINER_REGISTRY }} --repository ${{env.AZURE_REPOSITARTY_NAME}} --query "[?tags[?contains(@, '${{ env.IMAGE_VERSION }}')]].digest" -o tsv)
+    #     echo "DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+    #     echo "$GITHUB_ENV"
+    
+    
+
     
     
